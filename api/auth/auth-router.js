@@ -25,10 +25,10 @@ router.post("/register", async (req, res) => {
         username,
         password: hashedPassword,
       })
-      .returning(["id", "username"]);
+      .returning(["id", "username"]); 
 
     const token = buildToken(newUser);
-    res.status(201).json({ username, token });
+    res.status(201).json({ id: newUser.id, username, token });
   } catch (error) {
     res.status(500).json({ message: "Error registering new user" });
   }
