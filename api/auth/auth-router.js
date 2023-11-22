@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const restricted = require("../middleware/restricted.js");
 const { BCRYPT_ROUNDS, JWT_SECRET } = require("../secrets/index.js");
 const db = require("../../data/dbConfig.js");
 
@@ -13,26 +12,26 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    const existingUsers = await db("users").where({ username });
+    const existingUsers = await db('users').where({ username });
     if (existingUsers.length) {
       return res.status(400).json({ message: "username taken" });
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    await db("users").insert({
+    await db('users').insert({
       username,
       password: hashedPassword,
     });
 
-    const newUser = await db("users").where({ username }).first();
+    const newUser = await db('users').where({ username }).first();
 
-    const token = buildToken(newUser);
-    res.status(201).json({ id: newUser.id, username, token });
+    res.status(201).json({ id: newUser.id, username, password: hashedPassword });
   } catch (error) {
     res.status(500).json({ message: "Error registering new user" });
   }
 });
+
 
 /*
     IMPLEMENT
