@@ -5,7 +5,6 @@ const restricted = require("../middleware/restricted.js");
 const { BCRYPT_ROUNDS, JWT_SECRET } = require("../secrets/index.js");
 const db = require("../../data/dbConfig.js");
 
-
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
@@ -14,18 +13,19 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    const users = await db('users').where({ username });
-    if (users.length) {
+    const existingUsers = await db("users").where({ username });
+    if (existingUsers.length) {
       return res.status(400).json({ message: "username taken" });
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const [newUser] = await db('users')
-      .insert({
-        username,
-        password: hashedPassword,
-      })
-      .returning(["id", "username"]); 
+
+    await db("users").insert({
+      username,
+      password: hashedPassword,
+    });
+
+    const newUser = await db("users").where({ username }).first();
 
     const token = buildToken(newUser);
     res.status(201).json({ id: newUser.id, username, token });
